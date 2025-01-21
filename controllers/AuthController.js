@@ -130,5 +130,19 @@ res.status(200).json({
       next();
     });
   } 
+  static async verificaPermissaoAdm(req, res, next){
+    const usuario = await prisma.usuario.findUnique({
+      where: {
+        id: req.usuarioId,
+      }
+    });
+    if (usuario.tipo !== "adm"){
+      next();} else {
+      return res.status(401).json({
+        erro: true,
+        mensagem: "Acesso negado."
+      });
+    }
+}
 }
 module.exports = AuthController;
