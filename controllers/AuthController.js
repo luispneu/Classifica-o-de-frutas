@@ -103,7 +103,32 @@ const token = jwt.sign({id: usuario.id}, process.env.SECRET_KEY, {
 res.status(200).json({
   erro: false,
   mensagem: "Login realizado com sucesso!",
+  token: token,
 });
   }
+  
+  static async verificaAutenticacao(req, res, next){
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if(!token){
+      return res.status(422).json({
+        erro: true,
+        mensagem: "Token não encontrado."
+      });
+    }
+
+    jwt.verify(token, process.env.SECRET_KEY, (err, payload) => {
+      if(err){
+        return res.status(401).json({
+          erro: true,
+          mensagem: "Token inválido."
+        });
+      }
+
+      req.usuarioId = payload.id;
+      next();
+    });
+  } 
 }
 module.exports = AuthController;
