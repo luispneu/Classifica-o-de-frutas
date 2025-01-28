@@ -1,11 +1,14 @@
 const express = require ("express");
 const router = express.Router();
 
-const perfilController = require("../controllers/perfilController");
+const AuthController = require("../controllers/AuthController");
+const PerfilController = require("../controllers/PerfilController");
 
-router.get("/", perfilController.getPerfil);
+router.get("/", AuthController.verificaAutenticacao, PerfilController.verMeuPerfil);
 
-router.patch("/", perfilController.atualizaPerfil);
+router.patch("/", AuthController.verificaAutenticacao, PerfilController.atualizarMeuPerfil);
+
+router.get("/todos", AuthController.verificaAutenticacao, AuthController.verificaPermissaoAdm, PerfilController.buscarUsuarios);
 
 module.exports = router
 
