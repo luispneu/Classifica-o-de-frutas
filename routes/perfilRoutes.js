@@ -1,4 +1,4 @@
-const express = require ("express");
+const express = require("express");
 const router = express.Router();
 
 const AuthController = require("../controllers/AuthController");
@@ -10,5 +10,4 @@ router.patch("/", AuthController.verificaAutenticacao, PerfilController.atualiza
 
 router.get("/todos", AuthController.verificaAutenticacao, AuthController.verificaPermissaoAdm, PerfilController.buscarUsuarios);
 
-module.exports = router
-
+module.exports = router;

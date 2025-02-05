@@ -11,5 +11,7 @@ router.get("/", MesaController.buscarMesas);
 
 router.get("/disponibilidade", MesaController.consultarDisponibilidade);
 
+router.put("/atualizar", AuthController.verificaAutenticacao, AuthController.verificaPermissaoAdm, MesaController.atualizarMesa);
+
 module.exports = router
 

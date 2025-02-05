@@ -4,13 +4,15 @@ const router = express.Router();
 const AuthController = require("../controllers/AuthController");
 const ReservaController = require("../controllers/ReservaController");
 
-router.post("/novo", ReservaController.registrarReserva);
+router.post("/novo", ReservaController.novaReserva);
 
-router.post("/", AuthController.verificaAutenticacao, ReservaController.minhasReservas);
+router.get("/minhas", AuthController.verificaAutenticacao, ReservaController.minhasReservas);
 
-router.delete("/", AuthController.verificaAutenticacao, ReservaController.cancelarReserva);
+router.delete("/cancelar", AuthController.verificaAutenticacao, ReservaController.cancelarReserva);
 
 router.get("/list", AuthController.verificaAutenticacao, AuthController.verificaPermissaoAdm, ReservaController.buscarReservasPorData);
+
+router.get('/geral', AuthController.verificaAutenticacao, AuthController.verificaPermissaoAdm, ReservaController.buscarReservasPorData);
 
 module.exports = router
 

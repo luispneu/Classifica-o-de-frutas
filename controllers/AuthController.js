@@ -8,21 +8,21 @@ class AuthController {
     const { nome, email, password } = req.body;
 
     if (!nome || nome.length < 6) {
-      return res.status(422).json({
+      return res.status(400).json({
         erro: true,
         mensagem: "O nome deve ter pelo menos 6 caracteres."
       });
     }
 
     if (!email || email.length < 10) {
-      return res.status(422).json({
+      return res.status(400).json({
         erro: true,
         mensagem: "O email deve ter pelo menos 10 caracteres."
       });
     }
 
     if (!password || password.length < 8) {
-      return res.status(422).json({
+      return res.status(400).json({
         erro: true,
         mensagem: "A senha deve ter pelo menos 8 caracteres."
       });
@@ -35,7 +35,7 @@ class AuthController {
     });
 
     if (existe) {
-      return res.status(422).json({
+      return res.status(409).json({
         erro: true,
         mensagem: "Este email já está cadastrado."
       });
@@ -65,62 +65,63 @@ class AuthController {
       });
 
     } catch (error) {
-      return res.status(500).json({
+      return res.status(503).json({
         erro: true,
-        mensagem: "Ocorreu um erro ao cadastrar o usuário."
+        mensagem: "Ocorreu um erro ao cadastrar o usuário. Por favor, tente novamente mais tarde."
       });
     }
   }
 
   static async login(req, res) {
-const { email, password } = req.body;
+    const { email, password } = req.body;
 
-const usuario = await prisma.usuario.findUnique({
-  where: {
-    email: email,
+    const usuario = await prisma.usuario.findUnique({
+      where: {
+        email: email,
+      }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({
+        erro: true,
+        mensagem: "Usuário não encontrado."
+      });
+    }
+
+    const senhaCorreta = bcryptjs.compareSync(password, usuario.password);
+
+    if (!senhaCorreta) {
+      return res.status(401).json({
+        erro: true,
+        mensagem: "Senha incorreta."
+      });
+    }
+
+    const token = jwt.sign({ id: usuario.id }, process.env.SECRET_KEY, {
+      expiresIn: "1h"
+    });
+
+    return res.status(200).json({
+      erro: false,
+      mensagem: "Login realizado com sucesso!",
+      token: token,
+    });
   }
-});
-if(!usuario){
-  return res.status(422).json({
-    erro: true,
-    mensagem: "Usuário não encontrado."
-  });
-}
 
-// Verificar se a senha está correta
-const senhaCorreta = bcryptjs.compareSync(password, usuario.password);
-
-if(!senhaCorreta){
-  return res.status(422).json({
-    erro: true,
-    mensagem: "Senha incorreta."
-  });
-}
-
-const token = jwt.sign({id: usuario.id}, process.env.SECRET_KEY, {
- expiresIn: "1h"
-});
-res.status(200).json({
-  erro: false,
-  mensagem: "Login realizado com sucesso!",
-  token: token,
-});
-  }
-  
-  static async verificaAutenticacao(req, res, next){
+  static async verificaAutenticacao(req, res, next) {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
-    if(!token){
-      return res.status(422).json({
+    if (!token) {
+      return res.status(401).json({
         erro: true,
         mensagem: "Token não encontrado."
       });
     }
 
     jwt.verify(token, process.env.SECRET_KEY, (err, payload) => {
-      if(err){
-        return res.status(401).json({
+      if (err) {
+        return res.status(403).json({
           erro: true,
           mensagem: "Token inválido."
         });
@@ -129,20 +130,24 @@ res.status(200).json({
       req.usuarioId = payload.id;
       next();
     });
-  } 
-  static async verificaPermissaoAdm(req, res, next){
+  }
+
+  static async verificaPermissaoAdm(req, res, next) {
     const usuario = await prisma.usuario.findUnique({
       where: {
         id: req.usuarioId,
       }
     });
-    if (usuario.tipo !== "adm"){
-      next();} else {
-      return res.status(401).json({
+
+    if (usuario.tipo === "adm") {
+      next();
+    } else {
+      return res.status(403).json({
         erro: true,
         mensagem: "Acesso negado."
       });
     }
+  }
 }
-}
+
 module.exports = AuthController;

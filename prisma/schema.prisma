@@ -18,10 +18,10 @@ model Usuario {
 }
 
 model Mesa {
-  id Int @id @default(autoincrement())
-  codigo String
+  id        Int      @id @default(autoincrement())
+  codigo    String   @unique
   n_lugares Int
-  reservas Reserva[]
+  reservas  Reserva[]
 }
 
 model Reserva{
